@@ -20,6 +20,7 @@
 
 
 char wpm_str[10];
+uint16_t wpm_graph_timer = 0;
 
 extern uint8_t is_master;
 
@@ -45,7 +46,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------|   [   |    |    ]  |------+------+------+------+------+------|
  * |LShift|   Z  |   X  |   C  |   V  |   B  |-------|    |-------|   N  |   M  |   ,  |   .  |   /  |RShift|
  * `-----------------------------------------/       /     \      \-----------------------------------------'
- *                   | LAlt | LGUI |LOWER | /Space  /       \Enter \  |RAISE |BackSP| RGUI |
+ *                   | LAlt | LGUI |LOWER | /Space  /       \Enter \  |RAISE |BackSP| RAlt |
  *                   |      |      |      |/       /         \      \ |      |      |      |
  *                   `----------------------------'           '------''--------------------'
  */
@@ -55,28 +56,28 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_TAB,   KC_Q,   KC_W,    KC_E,    KC_R,    KC_T,                     KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_MINS,
   KC_LCTRL, KC_A,   KC_S,    KC_D,    KC_F,    KC_G,                     KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,
   KC_LSFT,  KC_Z,   KC_X,    KC_C,    KC_V,    KC_B, KC_LBRC,  KC_RBRC,  KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,  KC_RSFT,
-                             KC_LALT, KC_LGUI,LOWER, KC_SPC,   KC_ENT,   RAISE,   KC_BSPC, KC_RGUI
+                             KC_LALT, KC_LGUI,LOWER, KC_SPC,   KC_ENT,   RAISE,   KC_BSPC, KC_RALT
 ),
 /* LOWER
  * ,-----------------------------------------.                    ,-----------------------------------------.
  * |      |      |      |      |      |      |                    |  INS |  DEL | HOME |  END |      |      |
  * |------+------+------+------+------+------|                    |------+------+------+------+------+------|
- * |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |                    |  F7  |  F8  |  F9  | F10  | F11  | F12  |
- * |------+------+------+------+------+------|                    |------+------+------+------+------+------|
- * |   `  |   !  |   @  |   #  |   $  |   %  |-------.    ,-------|   ^  |   &  |   *  |   (  |   )  |   -  |
+ * |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |                    |  F7  |   Ü  |  F9  |  Ö   | F11  | F12  |
+ * |------+------b+------+------+------+------|                    |------+------+------+------+------+------|
+ * |   Ä  |   !  |   ß  |   #  |   $  |   %  |-------.    ,-------|   ^  |   &  |   *  |   (  |   )  |   -  |
  * |------+------+------+------+------+------|   [   |    |    ]  |------+------+------+------+------+------|
  * |      |      |      |      |      |      |-------|    |-------|      |   _  |   +  |   {  |   }  |   |  |
  * `-----------------------------------------/       /     \      \-----------------------------------------'
- *                   | LAlt | LGUI |LOWER | /Space  /       \Enter \  |RAISE |BackSP| RGUI |
+ *                   | LAlt | LGUI |LOWER | /Space  /       \Enter \  |RAISE |BackSP| RAlt |
  *                   |      |      |      |/       /         \      \ |      |      |      |
  *                   `----------------------------'           '------''--------------------'
  */
 [_LOWER] = LAYOUT(
-  _______, _______, _______, _______, _______, _______,                   KC_INS, KC_DEL, KC_HOME, KC_END, _______, _______,
-  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,                     KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,
-  KC_GRV, KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC,                   KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_TILD,
-  _______, _______, _______, _______, _______, _______, _______, _______, XXXXXXX, KC_UNDS, KC_PLUS, KC_LCBR, KC_RCBR, KC_PIPE,
-                             _______, _______, _______, _______, _______,  _______, _______, _______
+  _______,  _______, _______, _______, _______, _______,                   KC_INS,  KC_DEL,  KC_HOME, KC_END, _______, _______,
+  KC_F1,    KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,                     KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,
+  KC_LCTRL, KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC,                   KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_TILD,
+  KC_LSFT,  _______, _______, _______, _______, _______, _______, _______, XXXXXXX, KC_UNDS, KC_PLUS, KC_LCBR, KC_RCBR, KC_PIPE,
+                              _______, _______, _______, _______, _______, _______, _______, _______
 ),
 /* RAISE
  * ,-----------------------------------------.                    ,-----------------------------------------.
@@ -88,17 +89,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------|   [   |    |    ]  |------+------+------+------+------+------|
  * |  F7  |  F8  |  F9  | F10  | F11  | F12  |-------|    |-------|   +  |   -  |   =  |   [  |   ]  |   \  |
  * `-----------------------------------------/       /     \      \-----------------------------------------'
- *                   | LAlt | LGUI |LOWER | /Space  /       \Enter \  |RAISE |BackSP| RGUI |
+ *                   | LAlt | LGUI |LOWER | /Space  /       \Enter \  |RAISE |BackSP| RAlt |
  *                   |      |      |      |/       /         \      \ |      |      |      |
  *                   `----------------------------'           '------''--------------------'
  */
 
 [_RAISE] = LAYOUT(
-  _______, _______, _______, _______, _______, _______,                     _______, _______, _______, _______, _______, _______,
-  KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                        KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    _______,
-  KC_F1,  KC_F2,    KC_F3,   KC_F4,   KC_F5,   KC_F6,                       XXXXXXX, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, XXXXXXX,
-  KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,   _______, _______,  KC_PLUS, KC_MINS, KC_EQL,  KC_LBRC, KC_RBRC, KC_BSLS,
-                             _______, _______, _______,  _______, _______,  _______, _______, _______
+  _______,  _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______,
+  KC_GRV,   KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                      KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    _______,
+  KC_LCTRL, _______, _______, _______, _______, _______,                   XXXXXXX, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, XXXXXXX,
+  KC_LSFT,  _______, _______, _______, _______, _______, _______, _______, KC_PLUS, KC_MINS, KC_EQL,  KC_LBRC, KC_RBRC, KC_BSLS,
+                              _______, _______, _______, _______, _______, _______, _______, _______
 ),
 /* ADJUST
  * ,-----------------------------------------.                    ,-----------------------------------------.
@@ -285,12 +286,99 @@ void render_status_main(void) {
 	
 }
 
+static uint8_t zero_bar_count = 0;
+static uint8_t bar_count = 0;
+
+static void render_wpm_graph(void) {
+    uint8_t bar_height = 0;
+    uint8_t bar_segment = 0;
+
+    if (wpm_graph_timer == 0) {
+		render_lily58_logo();
+		wpm_graph_timer = timer_read();
+		return;
+    }
+    if(timer_elapsed(wpm_graph_timer) > 500) {
+		wpm_graph_timer = timer_read();
+
+		if(OLED_DISPLAY_HEIGHT == 64)
+			bar_height = get_current_wpm() / 2;
+		if(OLED_DISPLAY_HEIGHT == 32)
+			bar_height = get_current_wpm() / 4;
+		if(bar_height > OLED_DISPLAY_HEIGHT)
+			bar_height = OLED_DISPLAY_HEIGHT;
+
+		if(bar_height == 0) {
+			// keep track of how many zero bars we have drawn.  If
+			// there is a whole screen worth, turn the display off and 
+			// wait until there is something to do
+			if (zero_bar_count > OLED_DISPLAY_WIDTH) {
+				oled_off();
+				return;
+			}
+			zero_bar_count++;
+		} else
+			zero_bar_count=0;
+
+		oled_pan(false);
+		bar_count++;
+		for (uint8_t i = (OLED_DISPLAY_HEIGHT / 8); i > 0; i--) {
+			if (bar_height > 7) {
+				if (i % 2 == 1 && bar_count % 3 == 0)
+					bar_segment = 254;
+				else
+					bar_segment = 255;
+				bar_height -= 8;
+			} else {
+				switch (bar_height) {
+					case 0:
+					bar_segment = 0;
+					break;
+
+					case 1:
+					bar_segment = 128;
+					break;
+
+					case 2:
+					bar_segment = 192;
+					break;
+
+					case 3:
+					bar_segment = 224;
+					break;
+
+					case 4:
+					bar_segment = 240;
+					break;
+
+					case 5:
+					bar_segment = 248;
+					break;
+
+					case 6:
+					bar_segment = 252;
+					break;
+
+					case 7:
+					bar_segment = 254;
+					break;
+				}
+				bar_height = 0;
+
+				if (i % 2 == 1 && bar_count % 3 == 0)
+					bar_segment++;
+			}
+			oled_write_raw_byte(bar_segment, (i-1) * OLED_DISPLAY_WIDTH);
+		}
+    }
+}
+
 void oled_task_user(void) {
   update_log();
   if (is_keyboard_master()) {
     render_status_main();  // Renders the current keyboard state (layer, lock, caps, scroll, etc)
   } else {
-    render_lily58_logo();
+    render_wpm_graph();
   }
 }
 
